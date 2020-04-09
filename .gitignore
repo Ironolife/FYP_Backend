@@ -1,0 +1,8 @@
+__pycache__/
+venv/
+.vscode
+data/
+generator**/
+discriminator**/
+reconstructor**/
+output/
