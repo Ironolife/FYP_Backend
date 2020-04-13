@@ -69,7 +69,7 @@ class model():
 
             real_samples = tf.concat([self.real_samples, end_of_sequence], axis=1)
 
-            global_step = tf.Variable(0, name='global_step', trainable=False, dtype=tf.float32)
+            global_step = tf.Variable(500, name='global_step', trainable=False, dtype=tf.float32)
 
         with tf.variable_scope('embedding_layer') as scope:
 
@@ -299,7 +299,7 @@ class model():
             self.discriminator_saver.restore(self.sess, tf.train.latest_checkpoint('./discriminator'))
             self.reconstructor_saver.restore(self.sess, tf.train.latest_checkpoint('./reconstructor'))
 
-        data_generator = self.data.train_generator()
+        data_generator = self.data.train_generator(self.datatype)
 
         for _ in range(TRAIN_NUM_STEPS):
 

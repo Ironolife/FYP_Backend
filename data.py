@@ -4,11 +4,11 @@ from nltk.corpus import stopwords
 import numpy as np
 import os
 import random
+import re
 
 ARTICLE_LENGTH = 50
 SUMMARY_LENGTH = 14
 BATCH_SIZE = 64
-TEST_SIZE = 10048
 
 def read_json(filename):
     with open(filename, 'r') as json_file:
@@ -34,17 +34,21 @@ class data():
             self.prepare_data_gigaword()
         elif args.datatype == 'reuters':
             self.prepare_data_reuters()
+        elif args.datatype == 'cnn':
+            self.prepare_data_cnn()
 
     def prepare_data_gigaword(self):
 
+        TEST_SIZE = 10048
+
         result = []
 
-        article_file = open('./data/gigaword/article.txt')
-        summary_file = open('./data/gigaword/summary.txt')
-        processed_article_file = open('./data/gigaword/preprocessed_article.txt','w')
-        processed_summary_file = open('./data/gigaword/preprocessed_summary.txt','w')
-        test_article_file = open('./data/gigaword/test_article.txt', 'w')
-        test_summary_file = open('./data/gigaword/test_summary.txt', 'w')
+        article_file = open('./data/gigaword/article.txt', encoding="utf8")
+        summary_file = open('./data/gigaword/summary.txt', encoding="utf8")
+        processed_article_file = open('./data/gigaword/preprocessed_article.txt','w', encoding="utf8")
+        processed_summary_file = open('./data/gigaword/preprocessed_summary.txt','w', encoding="utf8")
+        test_article_file = open('./data/gigaword/test_article.txt', 'w', encoding="utf8")
+        test_summary_file = open('./data/gigaword/test_summary.txt', 'w', encoding="utf8")
 
         line_count = 0;
 
@@ -75,8 +79,8 @@ class data():
 
         result = []
 
-        processed_article_file = open('./data/reuters/preprocessed_article.txt','w')
-        processed_summary_file = open('./data/reuters/preprocessed_summary.txt','w')
+        processed_article_file = open('./data/reuters/preprocessed_article.txt','w', encoding="utf8")
+        processed_summary_file = open('./data/reuters/preprocessed_summary.txt','w', encoding="utf8")
 
         file_count = 0
         line_count = 0
@@ -84,7 +88,7 @@ class data():
         paragraphs = []
 
         for f in os.listdir('./data/reuters/raw'):
-            with open('./data/reuters/raw/' + f, 'r') as raw_text:
+            with open('./data/reuters/raw/' + f, 'r', encoding="utf8") as raw_text:
 
                 title = raw_text.readline()
                 article = raw_text.readlines()
@@ -126,6 +130,76 @@ class data():
                 line_count += 1
 
         print(str(file_count) + ' file procecessed. ' + str(line_count) + ' lines generated.')
+
+    def prepare_data_cnn(self):
+
+        result = []
+
+        article_file = open('./data/cnn/raw/train.txt.src', encoding="utf8")
+        summary_file = open('./data/cnn/raw/train.txt.tgt.tagged', encoding="utf8")
+        processed_article_file = open('./data/cnn/preprocessed_article.txt','w', encoding="utf8")
+        processed_summary_file = open('./data/cnn/preprocessed_summary.txt','w', encoding="utf8")
+
+        line_count = 0
+
+        for article, summary in zip(article_file, summary_file):
+
+            article = article.replace('-lrb-', '').replace('-rrb-', '').replace('cnn', '').replace('--', '')
+            summary = summary.replace('<t>', '').replace('</t>', '').replace('-lrb-', '').replace('-rrb-', '')
+
+            article = self.remove_stopwords_and_punctuation(article)
+            summary = self.remove_stopwords_and_punctuation(summary)
+
+            article.lower()
+            summary.lower()
+
+            result.append([article, summary])
+
+            line_count+=1
+
+            if line_count % 1000 == 0:
+                print(line_count)
+
+        for i in range(line_count):
+
+            processed_article_file.write(result[i][0] + '\n')
+            processed_summary_file.write(result[i][1] + '\n')
+
+        print(str(line_count) + ' lines procecessed for training.')
+
+        test_result = []
+        
+        test_raw_article_file = open('./data/cnn/raw/test.txt.src', encoding="utf8")
+        test_raw_summary_file = open('./data/cnn/raw/test.txt.tgt.tagged', encoding="utf8")
+        test_article_file = open('./data/cnn/test_article.txt', 'w', encoding="utf8")
+        test_summary_file = open('./data/cnn/test_summary.txt', 'w', encoding="utf8")
+
+        test_line_count = 0
+
+        for article, summary in zip(test_raw_article_file, test_raw_summary_file):
+
+            article = article.replace('-lrb-', '').replace('-rrb-', '').replace('cnn', '').replace('--', '')
+            summary = summary.replace('<t>', '').replace('</t>', '').replace('-lrb-', '').replace('-rrb-', '')
+
+            article = self.remove_stopwords_and_punctuation(article)
+            summary = self.remove_stopwords_and_punctuation(summary)
+
+            article.lower()
+            summary.lower()
+
+            test_result.append([article, summary])
+
+            test_line_count+=1
+
+            if test_line_count % 1000 == 0:
+                print(test_line_count)
+
+        for i in range(test_line_count):
+
+            test_article_file.write(test_result[i][0] + '\n')
+            test_summary_file.write(test_result[i][1] + '\n')
+
+        print(str(test_line_count) + ' lines procecessed for testing.')
 
     def remove_stopwords_and_punctuation(self, line):
 
