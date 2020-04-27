@@ -1,7 +1,9 @@
 __pycache__/
 venv/
 .vscode
-data/
+data/cnn/
+data/gigaword/
+data/reuters/
 generator**/
 discriminator**/
 reconstructor**/
