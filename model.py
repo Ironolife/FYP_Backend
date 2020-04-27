@@ -10,14 +10,14 @@ RECONSTRUCTOR_BASE = 0.0
 RECONSTRUCTOR_WEIGHT = 0.5
 RECONSTRUCTOR_ITERATIONS = 3
 DISCRIMINATOR_ITERATIONS = 3
-PRETRAIN_DISCRIMINATOR_RECONSTRUCTOR_STEPS = 500
+PRETRAIN_D_R_STEPS = 800
 COVERAGE_WEIGHT = 0.1
 LMBDA = 10
 ARTICLE_LENGTH = 50
 SUMMARY_LENGTH = 14
 BATCH_SIZE = 64
-PRETRAIN_NUM_STEPS = 20000
-TRAIN_NUM_STEPS = 7000
+PRETRAIN_NUM_STEPS = 22000
+TRAIN_NUM_STEPS = 8000
 PRETRAIN_CHECKPOINT = 1000
 TRAIN_CHECKPOINT = 100
 EMBEDDING_DIMENSION = 300
@@ -39,7 +39,7 @@ class model():
         for v in tf.trainable_variables():
             print(v.name,v.get_shape().as_list())
         
-        self.generator_saver = tf.train.Saver(self.generator_variables, max_to_keep=10)
+        self.generator_saver = tf.train.Saver(self.generator_variables, max_to_keep=2)
         if self.action != 'test':
             self.discriminator_saver = tf.train.Saver(self.discriminator_variables, max_to_keep=2)
             self.reconstructor_saver = tf.train.Saver(self.reconstructor_variables, max_to_keep=2)
@@ -69,7 +69,7 @@ class model():
 
             real_samples = tf.concat([self.real_samples, end_of_sequence], axis=1)
 
-            global_step = tf.Variable(500, name='global_step', trainable=False, dtype=tf.float32)
+            global_step = tf.Variable(0, name='global_step', trainable=False, dtype=tf.float32)
 
         with tf.variable_scope('embedding_layer') as scope:
 
@@ -322,7 +322,7 @@ class model():
 
                 discriminator_loss += loss / DISCRIMINATOR_ITERATIONS
 
-            if step < PRETRAIN_DISCRIMINATOR_RECONSTRUCTOR_STEPS:
+            if step < PRETRAIN_D_R_STEPS:
 
                 for i in range(RECONSTRUCTOR_ITERATIONS):
 
@@ -336,7 +336,7 @@ class model():
 
                     reconstructor_loss += loss / RECONSTRUCTOR_ITERATIONS
 
-            if step >= PRETRAIN_DISCRIMINATOR_RECONSTRUCTOR_STEPS:
+            if step >= PRETRAIN_D_R_STEPS:
 
                 x_batch, y_batch = data_generator.__next__()
 

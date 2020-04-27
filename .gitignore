@@ -6,3 +6,4 @@ generator**/
 discriminator**/
 reconstructor**/
 output/
+*.zip
